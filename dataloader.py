@@ -41,3 +41,9 @@ class Dataloader():
         return self.open_prices
     def get_volume(self):
         return self.volume
+
+# tickers = ['AAPL', 'GOOG', 'TSLA']
+# period = '12mo'
+# data = Dataloader('12mo', tickers)
+# tickers_close_price = data.get_close()
+# print(tickers_close_price)

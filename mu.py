@@ -4,19 +4,17 @@ import pandas as pd
 
 class mu():
     def __init__(self, ticker_series):
-        self.expected_returns = [self.fit_ARIMA(ticker_series[ticker_time_series]) for ticker_time_series in ticker_series] 
+        self.expected_returns = np.array([self.fit_ARIMA(ticker_series[ticker_time_series]) for ticker_time_series in ticker_series])
     def log_stationarity(self, time_series):
         log_series = np.log(time_series)
-        base_point = log_series.values[-1]
-        new_series = (log_series - log_series.shift(1)).dropna()
-        return new_series, base_point
+        return log_series
     def fit_ARIMA(self, time_series):
-        new_series, base_point = self.log_stationarity(time_series)
+        # new_series = self.log_stationarity(time_series)
         best_perf = np.inf
-        for p_ in range(1,5):
+        for p_ in range(0,5):
             for d_ in range(0,3):
-                for q_ in range(1,5):
-                    model = ARIMA(endog=new_series, order = (p_,d_,q_), enforce_stationarity=True)
+                for q_ in range(0,5):
+                    model = ARIMA(endog=time_series, order = (p_,d_,q_), enforce_stationarity=True)
                     try:
                         model_fit = model.fit()
                         current_perf = model_fit.aic
@@ -25,6 +23,6 @@ class mu():
                             best_perf = current_perf
                     except:
                         pass
-        return np.exp(mu + base_point)
-    def get_mu(self):
+        return mu
+    def get_expected_returns(self):
         return self.expected_returns
