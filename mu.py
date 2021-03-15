@@ -23,6 +23,6 @@ class mu():
                             best_perf = current_perf
                     except:
                         pass
-        return mu
+        return (1 + mu) ** 252 - 1
     def get_expected_returns(self):
         return self.expected_returns

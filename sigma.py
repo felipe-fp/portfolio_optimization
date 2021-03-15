@@ -22,7 +22,7 @@ class Sigma():
                     best_perf = current_perf
         return var
     def compute_sigma(self, sigma, P):
-        return np.sqrt(sigma) @ P @ np.sqrt(sigma)
+        return 252*np.sqrt(sigma) @ P @ np.sqrt(sigma)
     def get_variance(self):
         return self.variance
     def get_correlation(self):

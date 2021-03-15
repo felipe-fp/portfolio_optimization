@@ -7,8 +7,7 @@ tickers = ['AAPL', 'GOOG', 'TSLA', 'GME']
 period = '12mo'
 data = Dataloader('12mo', tickers)
 tickers_close_price = data.get_close()
-tickers_close_returns = (tickers_close_price/tickers_close_price.shift(1)).dropna()
-tickers_close_returns = tickers_close_returns.cumprod(axis = 0) -1
+tickers_close_returns = (tickers_close_price/tickers_close_price.shift(1)).dropna() - 1
 exp_returns = mu(tickers_close_returns).get_expected_returns()
 sigma = Sigma(tickers_close_returns, 1).get_sigma()
 m = Markowitz(exp_returns, sigma, 2)
