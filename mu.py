@@ -1,6 +1,7 @@
 from statsmodels.tsa.arima.model import ARIMA
 import numpy as np
 import pandas as pd
+from dataloader import *
 
 class mu():
     def __init__(self, ticker_series):
@@ -9,8 +10,8 @@ class mu():
         log_series = np.log(time_series)
         return log_series
     def fit_ARIMA(self, time_series):
-        # new_series = self.log_stationarity(time_series)
         best_perf = np.inf
+        l = []
         for p_ in range(0,5):
             for d_ in range(0,3):
                 for q_ in range(0,5):
@@ -23,6 +24,19 @@ class mu():
                             best_perf = current_perf
                     except:
                         pass
-        return (1 + mu) ** 252 - 1
+        return ((1 + mu) ** 252) - 1
     def get_expected_returns(self):
         return self.expected_returns
+
+
+# tickers = ['GOOG']
+# period = '12mo'
+# data = Dataloader('12mo', tickers, 0.2)
+# tickers_close_price_train, tickers_close_price_test = data.get_close()
+# tickers_close_returns = (tickers_close_price_train/tickers_close_price_train.shift(1)).dropna() - 1
+# test = (tickers_close_price_test/tickers_close_price_test.shift(1)).dropna() -1 
+# print(tickers_close_returns.head(5))
+# exp_returns = mu(tickers_close_returns).get_expected_returns()
+# print(tickers_close_returns.tail(4))
+# print('\n_________________\n')
+# print(test.head(4))

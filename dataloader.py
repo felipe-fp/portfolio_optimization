@@ -1,11 +1,13 @@
 import yfinance
 import pandas as pd
+from datetime import timedelta
 
 class Dataloader():
-    def __init__(self, period, tickers_list):
+    def __init__(self, period, tickers_list, rebalacing_freq_months):
 
         self.period = period
         self.tickers = tickers_list
+        self.rebalacing_freq_months = rebalacing_freq_months
 
         data_close = pd.DataFrame(yfinance.Ticker(tickers_list[0]).history(period = period).Close)
         data_close.columns = [tickers_list[0]]
@@ -36,14 +38,61 @@ class Dataloader():
         self.volume = data_volume
 
     def get_close(self):
+        # n_sample_train = int((1 - self.test_size) * self.close_prices.shape[0])
+        # close_train = self.close_prices.iloc[:n_sample_train]
+        # close_test = self.close_prices.iloc[n_sample_train:]
+        # return close_train, close_test
+
+        start_index = self.close_prices.index[0]
+        stop_index = self.close_prices.index[-1] - timedelta(days = 30 * self.rebalacing_freq_months)
+        close_prices_for_rebalancing = []
+        while start_index <= stop_index:
+            end_rebalancing = start_index + timedelta(days = 30 * self.rebalacing_freq_months)
+            close_df = self.close_prices.loc[start_index : end_rebalancing]
+            close_prices_for_rebalancing.append(close_df)
+            start_index = end_rebalancing
+
+        return close_prices_for_rebalancing
+        
+    def get_all_close(self):
         return self.close_prices
+
     def get_open(self):
-        return self.open_prices
+        # n_sample_train = int((1 - self.test_size) * self.open_prices.shape[0])
+        # open_train = self.open_prices.iloc[:n_sample_train]
+        # open_test = self.open_prices.iloc[n_sample_train:]
+        # return open_train, open_test
+
+        start_index = self.open_prices.index[0]
+        stop_index = self.open_prices.index[-1] - timedelta(days = 30 * self.rebalacing_freq_months)
+        open_prices_for_rebalancing = []
+        while start_index <= stop_index:
+            end_rebalancing = start_index + timedelta(days = 30 * self.rebalacing_freq_months)
+            open_df = self.open_prices.loc[start_index : end_rebalancing]
+            open_prices_for_rebalancing.append(open_df)
+            start_index = end_rebalancing
+
+        return open_prices_for_rebalancing
     def get_volume(self):
-        return self.volume
+        # n_sample_train = int((1 - self.test_size) * self.volume.shape[0])
+        # volume_train = self.volume.iloc[:n_sample_train]
+        # volume_test = self.volume.iloc[n_sample_train:]
+        # return volume_train, volume_test
+
+        start_index = self.volume.index[0]
+        stop_index = self.volume.index[-1] - timedelta(days = 30 * self.rebalacing_freq_months)
+        volume_prices_for_rebalancing = []
+        while start_index <= stop_index:
+            end_rebalancing = start_index + timedelta(days = 30 * self.rebalacing_freq_months)
+            volume_df = self.volume.loc[start_index : end_rebalancing]
+            volume_prices_for_rebalancing.append(volume_df)
+            start_index = end_rebalancing
+
+        return volume_prices_for_rebalancing
 
 # tickers = ['AAPL', 'GOOG', 'TSLA']
 # period = '12mo'
-# data = Dataloader('12mo', tickers)
+# data = Dataloader('12mo', tickers,2)
 # tickers_close_price = data.get_close()
 # print(tickers_close_price)
+# print('_______________\n')
