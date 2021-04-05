@@ -29,7 +29,6 @@ class mu():
                         pass
         return mu
     def fit_recommendations(self, time_series, ticker_name):
-        print(ticker_name)
         start_date = time_series.index.values[0]
         end_date = time_series.index.values[-1]
         try:
@@ -49,6 +48,7 @@ class mu():
                 score += (0.5 * recommendations.loc['Outperform'])
             if 'Underperform' in recommendations_attr:
                 score -= (0.5* recommendations.loc['Underperform'])
+        
             if len(recommendations_attr) > 0:
                 return score/len(recommendations_attr)
             else:
