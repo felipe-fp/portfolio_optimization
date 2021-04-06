@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import sys
 import yfinance as yf
 
-sys.stderr = open('somefile', 'w')
+# sys.stderr = open('somefile', 'w')
 
 class mu():
     def __init__(self, ticker_series, tickers, rebalancing_freq):

@@ -19,6 +19,7 @@ class Dataloader():
         data_volume.columns = [tickers_list[0]]
 
         for ticker in tickers_list[1:]:
+
             ticker_close = pd.DataFrame(yfinance.Ticker(ticker).history(period = period).Close)
             ticker_close.columns = [ticker]
 
@@ -28,10 +29,12 @@ class Dataloader():
 
             ticker_volume = pd.DataFrame(yfinance.Ticker(ticker).history(period = period).Volume)
             ticker_volume.columns = [ticker]
-
-            data_close = data_close.join(ticker_close, how = 'outer')
-            data_open = data_open.join(ticker_open, how = 'outer')
-            data_volume = data_volume.join(ticker_volume, how = 'outer')
+            if len(ticker_close.index) != 0:
+                data_close = data_close.join(ticker_close, how = 'outer')
+                data_open = data_open.join(ticker_open, how = 'outer')
+                data_volume = data_volume.join(ticker_volume, how = 'outer')
+            else:
+                print('Ticker not Available')
 
         self.close_prices = data_close
         self.open_prices = data_open
@@ -77,10 +80,9 @@ class Dataloader():
 
         return volume_prices_for_rebalancing
 
-# tickers = ['AAPL', 'GOOG', 'TSLA']
+# tickers = ['AAPL', 'CEG']
 # period = '12mo'
 # data = Dataloader('12mo', tickers,2)
-# dates, tickers_close_price = data.get_close()
+# tickers_close_price = data.get_all_close()
 # print(tickers_close_price)
-# print(dates)
 # print('_______________\n')

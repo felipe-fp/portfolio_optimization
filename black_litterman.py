@@ -2,14 +2,14 @@ import numpy as np
 import cvxpy as cvx
 
 class BlackLittermanPortfolio():
-    def __init__(self, exp_returns, sigma, market_cap, prior, delta, tau, min_returns):
+    def __init__(self, exp_returns, sigma, market_cap, prior, delta, tau, min_returns, omega):
         if len(prior) == 0:
             self.prior = self.calculate_prior(sigma, market_cap, delta, tau)
         else:
             self.prior = prior
         self.likelihood = self.calculate_likelihood(exp_returns, sigma, tau)
         self.posterior = self.master_formula(self.prior, self.likelihood)
-        self.optimal_weights = self.optimize_problem(self.posterior, min_returns)
+        self.optimal_weights = self.optimize_problem(self.posterior, omega, min_returns)
 
     def calculate_prior(self, sigma, market_cap, delta, tau):
         market_cap = (np.array(market_cap)).reshape((-1,1))
@@ -17,7 +17,7 @@ class BlackLittermanPortfolio():
         return [equilibrium_returns, tau * sigma]
     
     def calculate_likelihood(self, expected_returns, sigma, tau):
-        views_vector = (np.array(exp_returns)).reshape((-1,1))
+        views_vector = (np.array(expected_returns)).reshape((-1,1))
         absolute_pick_matrix = np.identity(views_vector.shape[0])
         omega = np.diag(np.diag(tau * absolute_pick_matrix @ sigma @ absolute_pick_matrix))
         return [views_vector, omega]
@@ -32,7 +32,7 @@ class BlackLittermanPortfolio():
         
         return [mu_bl, sigma_bl]
 
-    def optimize_problem(self, posterior, min_returns):
+    def optimize_problem(self, posterior, omega, min_returns):
         mu, sigma = posterior[0], posterior[1]
 
         dim = mu.shape[0]
@@ -45,14 +45,15 @@ class BlackLittermanPortfolio():
         problem.solve()
 
         return w.value
-
+    
     def get_weights(self):
         return self.optimal_weights
     def get_posterior(self):
         return self.posterior
 
+'''
 import pandas as pd 
-df_dataprojets =pd.read_excel('portfolio_optimization/DataProjets.xls', sheet_name=0) 
+df_dataprojets = pd.read_excel('portfolio_optimization/DataProjets.xls', sheet_name=0) 
 df_marketcap = pd.read_excel('portfolio_optimization/DataProjets.xls', sheet_name=1, index_col=0)
 df_sector = pd.read_excel('portfolio_optimization/DataProjets.xls', sheet_name=2) 
 df_bechmark =pd.read_excel('portfolio_optimization/DataProjets.xls', sheet_name=3, index_col = 0) 
@@ -96,10 +97,14 @@ for close_df in tickers_close_info:
     # exp_returns = (tickers_close_returns.iloc[-1].values)
     sigma = Sigma(tickers_close_returns, rebalancing_freq).get_sigma()
     # sigma = tickers_close_returns.cov().to_numpy()
-    
+    omega=np.diag(np.diag(sigma))
     if i > 0:
         markowitz_df = (tickers_close_returns.multiply(markowitz_weights)).sum(axis = 1)
-        tickers_close_returns['Portfolio Markowitz'] = markowitz_df
+        mvo_df = (tickers_close_returns.multiply(mvo_weights)).sum(axis = 1)
+
+        tickers_close_returns['Portfolio Black-Litterman'] = markowitz_df
+        tickers_close_returns['Portfolio Robust'] = mvo_df
+
         tickers_close_returns.dropna(axis = 0, inplace = True)
         close_returns = close_returns.append(tickers_close_returns)
 
@@ -108,13 +113,17 @@ for close_df in tickers_close_info:
         end_date = list(tickers_close_returns.index)[-1]
         marketcap = tickers_marketcap.loc[end_date].values
 
-    markowitz = BlackLittermanPortfolio(exp_returns, sigma, marketcap, prior, 0.1, 0.75, 0.2)
+    markowitz = BlackLittermanPortfolio(exp_returns, sigma, marketcap, prior, 0.1, 0.75, 0.2, omega)
+    mvo = RobustOptimiser(exp_returns, sigma, omega, 5,8)
     markowitz_weights = markowitz.get_weights()
+    mvo_weights = mvo.get_w_robust()
     markowitz_weights = markowitz_weights/sum(abs(markowitz_weights))
+    mvo_weights = mvo_weights/sum(abs(mvo_weights))
     prior = markowitz.get_posterior()
     
 close_returns = (close_returns + 1).cumprod(axis = 0)
-close_returns['Portfolio Markowitz'].plot()
+close_returns[['Portfolio Black-Litterman', 'Portfolio Robust']].plot()
 plt.show()
+'''
 
     
