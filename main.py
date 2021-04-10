@@ -115,6 +115,7 @@ for close_df in tickers_close_info:
     print(mvo_weights)
     print('\n ------------- \n ')
 
+
 # --------------------------------------------
 # Sharpe Ratio Calculation
 close_returns['Portfolio Markowitz'] = close_returns['Portfolio Markowitz'].astype(float)

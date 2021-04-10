@@ -36,6 +36,7 @@ class RiskPortfolio():
         else:
             print('Not a Valid Type. You can try one of the following: Min Variance, Inv Variance, Equally Weighted')
             return None
+
 '''
 from mu import *
 from sigma import *
@@ -51,7 +52,8 @@ data = Dataloader(period, tickers, rebalancing_freq)
 dates, tickers_close_info = data.get_close()
 close_returns = pd.DataFrame()
 i = 0
-s = []
+s = {}
+VaR_1mo_95 = {}
 for close_df in tickers_close_info:
 
     tickers_close_returns = (close_df/close_df.shift(1)).dropna() - 1
@@ -80,9 +82,16 @@ for close_df in tickers_close_info:
     risk__weights_min = np.transpose(risk_.get_weights('Min Variance'))[0]
     risk__weights_eq = np.transpose(risk_.get_weights('Equally Weighted'))[0]
 
-close_returns = (close_returns + 1).cumprod(axis = 0)
-close_returns[['Portfolio Risk Inverse Variance', 'Portfolio Risk Min Variance', 'Portfolio Risk Equally Weighted']].plot()
-plt.ylabel('Cummulative Returns') 
-plt.suptitle('Minimum Variance Portfolio Performance')
-plt.show()
+portfolios = ['Portfolio Risk Inverse Variance', 'Portfolio Risk Min Variance', 'Portfolio Risk Equally Weighted']
+for p in portfolios:
+    s[p] = (np.mean(close_returns[p])/np.std(close_returns[p]))
+    VaR_1mo_95[p] = np.mean(close_returns[p]) - 1.65 * np.sqrt(21) * np.std(close_returns[p])
+# close_returns = (close_returns + 1).cumprod(axis = 0)
+# close_returns[['Portfolio Risk Inverse Variance', 'Portfolio Risk Min Variance', 'Portfolio Risk Equally Weighted']].plot()
+# plt.ylabel('Cummulative Returns') 
+# plt.suptitle('Minimum Variance Portfolio Performance')
+# plt.show()
+
+df = pd.DataFrame([VaR_1mo_95, s], index = ['VaR 95 at 1mo horizon', 'Sharpe Ratio']).T
+print(df.to_latex())
 '''

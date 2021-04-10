@@ -81,7 +81,9 @@ for date in dates:
 plt.ylabel('Cummulative Return')
 plt.suptitle('Return of Portfolio')
 plt.show()
+'''
 
+'''
 from mu import *
 from sigma import *
 from dataloader import *
@@ -91,13 +93,15 @@ import numpy as np
 
 tickers = ['AAPL', 'GOOG', 'IBM', 'TSLA', 'BLK', 'AMZN', 'COTY', 'PFE']
 period = '12mo'
-rebalancing_freq = 5*20
+rebalancing_freq = 5*21
 data = Dataloader(period, tickers, rebalancing_freq)
 dates, tickers_close_info = data.get_close()
 close_returns = pd.DataFrame()
 i = 0
+psi = 0
 s = []
 a = np.linspace(0.5, 4, 5)
+VaR_1mo_95 = {}
 for m in a:
     for close_df in tickers_close_info:
 
@@ -118,15 +122,19 @@ for m in a:
         else:
             i = 1
         
-        mvo1 = Markowitz(exp_returns, sigma, m)
+        mvo1 = Markowitz(exp_returns, sigma,[],psi, m)
         mvo1_weights = mvo1.get_weights()
         mvo1_weights = mvo1_weights/sum(abs(mvo1_weights))
 
     # close_returns = (close_returns + 1).cumprod(axis = 0)
     s.append(np.mean(close_returns['Portfolio Max Returns'])/np.std(close_returns['Portfolio Max Returns']))
+    VaR_1mo_95[m] = np.mean(close_returns['Portfolio Max Returns']) - 1.65 * np.sqrt(21) * np.std(close_returns['Portfolio Max Returns'])
 plt.plot(a, s)
 plt.xlabel(r'$\mu_{min}$')
 plt.ylabel('Sharpe Ratio') 
-plt.suptitle('Minimum Variance Portfolio Performance')
+plt.suptitle('Maximum Retruns Portfolio Performance')
 plt.show()
-''' 
+
+df_var = pd.DataFrame(VaR_1mo_95, index = ['VaR 95 at 1mo horizon']).T
+print(df_var.to_latex())
+'''

@@ -41,7 +41,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-tickers = ['AAPL', 'GOOG', 'IBM', 'TSLA', 'AMZN']
+tickers = ['AAPL', 'GOOG', 'IBM', 'TSLA', 'BLK', 'AMZN', 'COTY', 'PFE']
 period = '12mo'
 rebalancing_freq = 4*20
 data = Dataloader(period, tickers, rebalancing_freq)
@@ -96,4 +96,64 @@ plt.show()
 # plt.suptitle('Return of Portfolio Compared')
 # plt.legend()
 # plt.show()
+'''
+'''
+from mu import *
+from sigma import *
+from dataloader import *
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+tickers = ['AAPL', 'GOOG', 'IBM', 'TSLA', 'BLK', 'AMZN', 'COTY', 'PFE']
+period = '12mo'
+rebalancing_freq = 5*21
+data = Dataloader(period, tickers, rebalancing_freq)
+dates, tickers_close_info = data.get_close()
+close_returns = pd.DataFrame()
+i = 0
+for close_df in tickers_close_info:
+
+    tickers_close_returns = (close_df/close_df.shift(1)).dropna() - 1
+    exp_returns = mu(tickers_close_returns, tickers, rebalancing_freq).get_mu()
+    sigma = Sigma(tickers_close_returns,rebalancing_freq).get_sigma()
+    omega = np.diag(np.diag(sigma))
+
+    if i > 0:
+
+        robust_0_df = (tickers_close_returns.multiply(robust_0_weights)).sum(axis = 1)
+        robust_1_df = (tickers_close_returns.multiply(robust_1_weights)).sum(axis = 1)
+        robust_2_df = (tickers_close_returns.multiply(robust_2_weights)).sum(axis = 1)
+
+        tickers_close_returns['Portfolio Robust kappa = 0'] = robust_0_df
+        tickers_close_returns['Portfolio Robust Omega'] = robust_1_df
+        tickers_close_returns['Portfolio Robust Sigma'] = robust_2_df
+
+        tickers_close_returns.dropna(axis = 0, inplace = True)
+        close_returns = close_returns.append(tickers_close_returns)
+
+    else:
+        i = 1
+    
+    robust_0 = RobustOptimiser(exp_returns, sigma, omega,[], 0, 0, 8)
+    robust_0_weights = robust_0.get_w_robust()
+    robust_0_weights = robust_0_weights/sum(abs(robust_0_weights))
+
+    robust_1 = RobustOptimiser(exp_returns, sigma, sigma,[], 0, 5, 8)
+    robust_1_weights = robust_1.get_w_robust()
+    robust_1_weights = robust_1_weights/sum(abs(robust_1_weights))
+
+    robust_2 = RobustOptimiser(exp_returns, sigma, omega,[], 0, 5, 8)
+    robust_2_weights = robust_2.get_w_robust()
+    robust_2_weights = robust_2_weights/sum(abs(robust_2_weights))
+
+v = {}
+s = {}
+portfolios = ['Portfolio Robust kappa = 0', 'Portfolio Robust Omega', 'Portfolio Robust Sigma']
+for p in portfolios:
+    v[p] = np.mean(close_returns[p]) - 1.65 * np.sqrt(21) * np.std(close_returns[p])
+    s[p] = np.mean(close_returns[p])/np.std(close_returns[p])
+
+df = pd.DataFrame([v, s], index = ['VaR 95 at 1mo horizon', 'Sharpe Ratio']).T
+print(df.to_latex())
 '''
